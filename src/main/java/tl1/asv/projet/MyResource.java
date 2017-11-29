@@ -3,11 +3,13 @@ package tl1.asv.projet;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,6 +17,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -23,9 +26,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-
 
 
 /**
@@ -46,6 +46,8 @@ public class MyResource {
         return "Got it!";
     }
     
+    
+    
 	private static final String SERVER_UPLOAD_LOCATION_FOLDER = "C://Users/Aurelien/Documents/Telecom/projets/projet/img";
 
 	/**
@@ -54,19 +56,24 @@ public class MyResource {
 
 	@POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public Response uploadFile(
-			@FormDataParam("file") InputStream fileInputStream,
-			@FormDataParam("file") FormDataContentDisposition contentDispositionHeader) {
+	public Response uploadFile(@FormParam("img") String img) {
 
-		String filename = contentDispositionHeader.getFileName();
-		String[] tab = filename.split("\\.");
 		
-		String ext = tab[tab.length -1];
+		String ext = "png";
 		String filePath = SERVER_UPLOAD_LOCATION_FOLDER	+ "/test/" + generateRandomInt() + "." + ext;
 
-		//save the file to the server
-		saveFile(fileInputStream, filePath);
-
+		
+		byte[] data = Base64.getDecoder().decode(img);
+		try (OutputStream stream = new FileOutputStream(filePath)) {
+		    stream.write(data);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		String output = ChooseClass(filePath);
 
 		return Response.status(200).entity(output).build();

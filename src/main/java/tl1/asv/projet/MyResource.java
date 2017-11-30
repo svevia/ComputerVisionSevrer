@@ -15,9 +15,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.net.URLDecoder;
+import java.io.UnsupportedEncodingException;
+
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -26,6 +28,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.bytedeco.javacpp.opencv_core.Mat;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONObject;
 
 
 /**
@@ -48,17 +52,24 @@ public class MyResource {
     
     
     
-	private static final String SERVER_UPLOAD_LOCATION_FOLDER = "C://Users/Aurelien/Documents/Telecom/projets/projet/img";
+	private static final String SERVER_UPLOAD_LOCATION_FOLDER = "/tmp/img";
 
 	/**
 	 * Upload a File
 	 */
 
 	@POST
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public Response uploadFile(@FormParam("img") String img) {
-
-		
+    @Consumes(MediaType.APPLICATION_JSON)
+	public Response uploadFile(String json) {
+	    System.out.println(json);
+		JSONObject obj = new JSONObject(json);
+		String img = obj.getString("img");
+		try {
+		    img = URLDecoder.decode(img, "UTF-8");
+		} catch (UnsupportedEncodingException e1) {
+		    // TODO Auto-generated catch block
+		    e1.printStackTrace();
+		}
 		String ext = "png";
 		String filePath = SERVER_UPLOAD_LOCATION_FOLDER	+ "/test/" + generateRandomInt() + "." + ext;
 

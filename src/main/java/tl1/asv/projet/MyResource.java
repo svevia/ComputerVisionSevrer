@@ -95,7 +95,7 @@ public class MyResource {
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetail) {
 
-        String[] fileName = fileDetail.getFileName().split(".");
+        String[] fileName = fileDetail.getFileName().split("\\.");
 
         String extension = fileName[fileName.length - 1].toLowerCase();
         if (!Config.isAllowedExtension(extension)) {
@@ -106,7 +106,7 @@ public class MyResource {
 
         String newFileName = "test_" + generateRandomInt();
 
-        String totalPath = newFileName + extension;
+        String totalPath = newFileName + "." + extension;
         String uploadedFileLocation = SERVER_UPLOAD_LOCATION_FOLDER + "/" + totalPath;
 
         // save it

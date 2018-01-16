@@ -49,7 +49,7 @@ public class MyResource {
 
 
     private static final String SERVER_UPLOAD_LOCATION_FOLDER = "tmp/img";
-    private static final String SERVER_REFERENCES_FOLDER = "../datasets/processedRefs";
+    private static final String SERVER_REFERENCES_FOLDER = "datasets/processedRefs";
 
     /**
      * Upload a File

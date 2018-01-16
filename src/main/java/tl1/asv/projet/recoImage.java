@@ -55,6 +55,20 @@ public class recoImage {
     }
 
 
+    static SIFT sift;
+
+    static {
+        int nFeatures = 250;
+        int nOctaveLayers = 5;
+        double contrastThreshold = 0.03;
+        int edgeThreshold = 10;
+        double sigma = 1.6;
+
+
+        sift = SIFT.create(nFeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma);
+
+    }
+
     /**
      * Obtient la distance entre deux matrices d'image.
      *
@@ -63,28 +77,20 @@ public class recoImage {
      * @return
      */
     static float getDist(Mat img1_original, Mat img2_original) {
-        int nFeatures = 250;
-        int nOctaveLayers = 5;
-        double contrastThreshold = 0.03;
-        int edgeThreshold = 10;
-        double sigma = 1.6;
+
 
         // BB conversion
 
-        Mat img1=new Mat(img1_original.size());
-        opencv_imgproc.cvtColor(img1_original,img1,opencv_imgproc.CV_BGR2GRAY);
+        Mat img1 = new Mat(img1_original.size());
+        opencv_imgproc.cvtColor(img1_original, img1, opencv_imgproc.CV_BGR2GRAY);
 
-        Mat img2=new Mat(img2_original.size());
-        opencv_imgproc.cvtColor(img2_original,img2,opencv_imgproc.CV_BGR2GRAY);
-
-
+        Mat img2 = new Mat(img2_original.size());
+        opencv_imgproc.cvtColor(img2_original, img2, opencv_imgproc.CV_BGR2GRAY);
 
 
         KeyPointVector kpv1 = new KeyPointVector();
         KeyPointVector kpv2 = new KeyPointVector();
 
-        SIFT sift;
-        sift = SIFT.create(nFeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma);
         sift.detect(img1, kpv1);
         sift.detect(img2, kpv2);
 
@@ -98,13 +104,6 @@ public class recoImage {
         sift.compute(img2, kpv2, desc2);
 
 
-
-        drawKeypoints(img1, kpv1, feature1, new Scalar(255, 255, 255, 0), DrawMatchesFlags.DRAW_RICH_KEYPOINTS);
-        drawKeypoints(img2, kpv2, feature2, new Scalar(255, 255, 255, 0), DrawMatchesFlags.DRAW_RICH_KEYPOINTS);
-
-       // showImage(feature2,false);
-
-
         BFMatcher matcher = new BFMatcher(NORM_L2, false);
         DMatchVector match = new DMatchVector();
         matcher.match(desc1, desc2, match);
@@ -116,13 +115,30 @@ public class recoImage {
         float moy = 0;
         for (int j = 0; j < bestMatches.size(); j++) {
             moy += bestMatches.get(j).distance();
+
+
+
+
         }
         moy = moy / bestMatches.size();
+
+
+        // remove variables...
+        kpv1 = null;
+        kpv2 = null;
+        img2 = null;
+        img1 = null;
+        img1_original = null;
+        img2_original = null;
+        bestMatches=null;
+        System.gc();
+
+
         return moy;
 
     }
 
-    private static void showImage( Mat img, boolean force) {
+    private static void showImage(Mat img, boolean force) {
         namedWindow("r", WINDOW_AUTOSIZE);    //	Create	a	window	for	display.
         imshow("r", img);    //	Show	our	image	inside	it.
         waitKey(0);    //	Wait	for	a	keystroke	in	the	window

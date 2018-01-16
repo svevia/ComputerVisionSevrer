@@ -95,12 +95,25 @@ public class MyResource {
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetail) {
 
-        String uploadedFileLocation = SERVER_UPLOAD_LOCATION_FOLDER + "/" + fileDetail.getFileName();
+        String[] fileName = fileDetail.getFileName().split(".");
+
+        String extension = fileName[fileName.length - 1].toLowerCase();
+        if (!Config.isAllowedExtension(extension)) {
+            return Response.status(415).entity("Extension refused").build();
+
+        }
+
+
+        String newFileName = "test_" + generateRandomInt();
+
+        String totalPath = newFileName + extension;
+        String uploadedFileLocation = SERVER_UPLOAD_LOCATION_FOLDER + "/" + totalPath;
 
         // save it
         saveFile(uploadedInputStream, uploadedFileLocation);
 
-        String output = "File uploaded to : " + uploadedFileLocation;
+        String output = totalPath;
+        System.out.println(output);
 
         return Response.status(200).entity(output).build();
 
@@ -116,7 +129,6 @@ public class MyResource {
         String filepath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + file;
 
         className = ChooseClass(filepath);
-
 
 
         return Response.status(200).entity(className).build();
@@ -139,7 +151,7 @@ public class MyResource {
                 Mat matImg = imread(f.getAbsolutePath());
                 float resultMoy = recoImage.getDist(testMat, matImg);
                 dists.put(f.getName(), resultMoy);
-                System.out.println("Result for: "+f.getName()+"\t"+resultMoy);
+                System.out.println("Result for: " + f.getName() + "\t" + resultMoy);
             }
         }
 
@@ -151,9 +163,9 @@ public class MyResource {
 
 
         Iterator<Entry<String, Float>> testPrint = sortedSet.iterator();
-        while(testPrint.hasNext()){
+        while (testPrint.hasNext()) {
             Entry<String, Float> next = testPrint.next();
-            System.out.println("next: "+next.getKey()+":"+next.getValue());
+            System.out.println("next: " + next.getKey() + ":" + next.getValue());
         }
 
         Iterator<Map.Entry<String, Float>> it = sortedSet.iterator();
@@ -180,10 +192,10 @@ public class MyResource {
                 categoryDistance.keySet()) {
             float val = categoryDistance.get(key);
 
-            System.out.println("Original Value: "+ key+":"+val + " /" + category.get(key));
+            System.out.println("Original Value: " + key + ":" + val + " /" + category.get(key));
             val /= category.get(key); // moyenne par le nombre d'entrée référencée
-            categoryDistance.put(key,val);
-            System.out.println("Final Value: "+ key+":"+val);
+            categoryDistance.put(key, val);
+            System.out.println("Final Value: " + key + ":" + val);
 
 
         }
@@ -193,15 +205,14 @@ public class MyResource {
         String mostConfident = "NOK";
         for (String marque :
                 categoryDistance.keySet()) {
-            if(lowest==-1 || lowest > categoryDistance.get(marque)){
-                lowest=categoryDistance.get(marque);
-                mostConfident=marque;
+            if (lowest == -1 || lowest > categoryDistance.get(marque)) {
+                lowest = categoryDistance.get(marque);
+                mostConfident = marque;
             }
         }
 
 
-
-        System.out.println("Most confident: "+ mostConfident);
+        System.out.println("Most confident: " + mostConfident);
 
 
         return mostConfident;

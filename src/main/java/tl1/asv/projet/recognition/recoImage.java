@@ -1,4 +1,4 @@
-package tl1.asv.projet;
+package tl1.asv.projet.recognition;
 
 import static org.bytedeco.javacpp.opencv_core.NORM_L2;
 import static org.bytedeco.javacpp.opencv_features2d.drawKeypoints;
@@ -25,8 +25,9 @@ import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.bytedeco.javacpp.opencv_features2d.BFMatcher;
 import org.bytedeco.javacpp.opencv_features2d.DrawMatchesFlags;
 import org.bytedeco.javacpp.opencv_xfeatures2d.SIFT;
+import tl1.asv.projet.recognition.OneImage;
 
-public class recoImage {
+public abstract class recoImage {
 
     // Chargement statique des librairies pour optimisation
     static {
@@ -56,6 +57,7 @@ public class recoImage {
 
 
     static SIFT sift;
+    static BFMatcher matcher;
 
     static {
         int nFeatures = 250;
@@ -66,12 +68,12 @@ public class recoImage {
 
 
         sift = SIFT.create(nFeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma);
-
+        matcher = new BFMatcher(NORM_L2, false);
     }
 
     /**
      * Obtient la distance entre deux matrices d'image.
-     *
+     * @deprecated
      * @param img1
      * @param img2
      * @return
@@ -94,8 +96,6 @@ public class recoImage {
         sift.detect(img1, kpv1);
         sift.detect(img2, kpv2);
 
-        Mat feature1 = new Mat();
-        Mat feature2 = new Mat();
 
         Mat desc1 = new Mat();
         Mat desc2 = new Mat();
@@ -104,7 +104,6 @@ public class recoImage {
         sift.compute(img2, kpv2, desc2);
 
 
-        BFMatcher matcher = new BFMatcher(NORM_L2, false);
         DMatchVector match = new DMatchVector();
         matcher.match(desc1, desc2, match);
 
@@ -117,26 +116,63 @@ public class recoImage {
             moy += bestMatches.get(j).distance();
 
 
+        }
+        moy = moy / bestMatches.size();
+
+
+        return moy;
+
+    }
+
+
+    /**
+     * Compute distances.
+     *
+     * @param testImage
+     * @param reference
+     * @return
+     */
+    static float getDist(OneImage testImage, OneImage reference) {
+
+        DMatchVector match = new DMatchVector();
+        matcher.match(testImage.getDescriptors(), reference.getDescriptors(), match);
+
+        /**
+         * On sélectionne les 25 meilleurs points.
+         */
+        DMatchVector bestMatches = selectBest(match, 25);
+        float moy = 0;
+        for (int j = 0; j < bestMatches.size(); j++) {
+            moy += bestMatches.get(j).distance();
 
 
         }
         moy = moy / bestMatches.size();
 
 
-        // remove variables...
-        kpv1 = null;
-        kpv2 = null;
-        img2 = null;
-        img1 = null;
-        img1_original = null;
-        img2_original = null;
-        bestMatches=null;
-        System.gc();
-
-
         return moy;
 
     }
+
+
+    /**
+     * Detect all points and feature in a reference image.
+     *
+     * @param src
+     */
+    static void detectPointsAndFeature(OneImage src) {
+        KeyPointVector keyPointVector = new KeyPointVector();
+        Mat descriptors = new Mat();
+
+        sift.detect(src.getImg(), keyPointVector);
+        sift.compute(src.getImg(), keyPointVector, descriptors);
+
+        src.setKeyPointVector(keyPointVector);
+        src.setDescriptors(descriptors);
+
+
+    }
+
 
     private static void showImage(Mat img, boolean force) {
         namedWindow("r", WINDOW_AUTOSIZE);    //	Create	a	window	for	display.

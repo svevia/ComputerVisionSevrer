@@ -1,6 +1,7 @@
 package tl1.asv.projet;
 
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
+import static tl1.asv.projet.Config.SERVER_UPLOAD_LOCATION_FOLDER;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,6 +28,10 @@ import org.bytedeco.javacpp.opencv_core.Mat;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONObject;
+import tl1.asv.projet.recognition.CVUtils;
+import tl1.asv.projet.recognition.OneImage;
+import tl1.asv.projet.recognition.RecognitionAnalyseController;
+import tl1.asv.projet.recognition.recoImage;
 
 
 /**
@@ -48,46 +53,15 @@ public class MyResource {
     }
 
 
-    private static final String SERVER_UPLOAD_LOCATION_FOLDER = "tmp/img";
-    private static final String SERVER_REFERENCES_FOLDER = "datasets/processedRefs";
+
 
     /**
-     * Upload a File
+     * This method is to allow uploading image to server.
+     *
+     * @param uploadedInputStream
+     * @param fileDetail
+     * @return
      */
-
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response uploadFile(String json) {
-        System.out.println(json);
-        JSONObject obj = new JSONObject(json);
-        String img = obj.getString("img");
-        try {
-            img = URLDecoder.decode(img, "UTF-8");
-        } catch (UnsupportedEncodingException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-        String ext = "png";
-        String filePath = SERVER_UPLOAD_LOCATION_FOLDER + "/test/" + generateRandomInt() + "." + ext;
-
-
-        byte[] data = Base64.getDecoder().decode(img);
-        try (OutputStream stream = new FileOutputStream(filePath)) {
-            stream.write(data);
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        String output = ChooseClass(filePath);
-
-        return Response.status(200).entity(output).build();
-    }
-
-
     @POST
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -119,6 +93,11 @@ public class MyResource {
 
     }
 
+    /**
+     * Start Analyse
+     * @param file
+     * @return
+     */
     @GET
     @Path("/analyse/{file}")
     @Produces(MediaType.TEXT_PLAIN)
@@ -128,115 +107,21 @@ public class MyResource {
 
         String filepath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + file;
 
-        className = ChooseClass(filepath);
+
+        try {
+            RecognitionAnalyseController recognitionAnalyseController = new RecognitionAnalyseController();
+            className = recognitionAnalyseController.analyse(filepath);
+        } catch(Exception ex){
+            System.out.println("Exception on thread.");
+            ex.printStackTrace();
+        }
+
 
 
         return Response.status(200).entity(className).build();
     }
 
 
-    public String ChooseClass(String filepath) {
-        HashMap<String, Float> dists = new HashMap<>();
-        HashMap<String, Float> category = new HashMap<>();
-        HashMap<String, Float> categoryDistance = new HashMap<>();
-
-        Mat testMat = imread(filepath);
-
-
-        /**
-         * On teste les distances entre l'image de test et les images de références.
-         */
-        for (File f : listImages()) {
-            if (!f.isDirectory()) {
-                Mat matImg = imread(f.getAbsolutePath());
-                float resultMoy = recoImage.getDist(testMat, matImg);
-                dists.put(f.getName(), resultMoy);
-                System.out.println("Result for: " + f.getName() + "\t" + resultMoy);
-            }
-        }
-
-        /**
-         *
-         */
-        Map<String, Float> sorted = recoImage.sortByComparator(dists, true);
-        Set<Map.Entry<String, Float>> sortedSet = sorted.entrySet();
-
-
-        Iterator<Entry<String, Float>> testPrint = sortedSet.iterator();
-        while (testPrint.hasNext()) {
-            Entry<String, Float> next = testPrint.next();
-            System.out.println("next: " + next.getKey() + ":" + next.getValue());
-        }
-
-        Iterator<Map.Entry<String, Float>> it = sortedSet.iterator();
-        int kMatch = sortedSet.size();
-
-        // parcours des 7 premières je crois...
-        for (int i = 0; i < kMatch; i++) {
-            Entry<String, Float> item = it.next();
-            String cat = item.getKey().split("_")[0];
-            if (category.containsKey(cat)) {
-                category.put(cat, category.get(cat) + 1);
-
-                // add current distance
-                categoryDistance.put(cat, categoryDistance.get(cat) + item.getValue());
-            } else {
-                category.put(cat, (float) 1);
-                categoryDistance.put(cat, item.getValue());
-            }
-        }
-
-
-        // print all distances
-        for (String key :
-                categoryDistance.keySet()) {
-            float val = categoryDistance.get(key);
-
-            System.out.println("Original Value: " + key + ":" + val + " /" + category.get(key));
-            val /= category.get(key); // moyenne par le nombre d'entrée référencée
-            categoryDistance.put(key, val);
-            System.out.println("Final Value: " + key + ":" + val);
-
-
-        }
-
-
-        float lowest = -1;
-        String mostConfident = "NOK";
-        for (String marque :
-                categoryDistance.keySet()) {
-            if (lowest == -1 || lowest > categoryDistance.get(marque)) {
-                lowest = categoryDistance.get(marque);
-                mostConfident = marque;
-            }
-        }
-
-
-        System.out.println("Most confident: " + mostConfident);
-
-
-        return mostConfident;
-/*
-        Map<String, Float> sortedCat = recoImage.sortByComparator(category, false);
-        Set<Map.Entry<String, Float>> sortedSetCat = sortedCat.entrySet();
-        Iterator<Map.Entry<String, Float>> itCat = sortedSetCat.iterator();
-
-        System.out.println("SCORES");
-        Entry<String, Float> chosen = itCat.next();
-        String chosenClass= chosen.getKey();
-        System.out.println("Chosen with: " + chosenClass + "=>"+chosen.getValue());
-        while(itCat.hasNext()){
-            Entry<String, Float> next = itCat.next();
-            System.out.println(next.getKey() +"=>"+next.getValue());
-        }
-
-        return chosenClass;*/
-    }
-
-    public File[] listImages() {
-        File dir = new File(SERVER_REFERENCES_FOLDER);
-        return dir.listFiles();
-    }
 
     // save uploaded file to a defined location on the server
     private void saveFile(InputStream uploadedInputStream,

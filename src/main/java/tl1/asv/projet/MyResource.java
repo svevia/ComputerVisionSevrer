@@ -107,13 +107,18 @@ public class MyResource {
 
         String filepath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + file;
 
-
+        RecognitionAnalyseController recognitionAnalyseController = null;
         try {
-            RecognitionAnalyseController recognitionAnalyseController = new RecognitionAnalyseController();
+            recognitionAnalyseController= new RecognitionAnalyseController();
             className = recognitionAnalyseController.analyse(filepath);
         } catch(Exception ex){
             System.out.println("Exception on thread.");
             ex.printStackTrace();
+        } finally {
+            if(recognitionAnalyseController!=null){
+                recognitionAnalyseController = null;
+                System.gc();
+            }
         }
 
 

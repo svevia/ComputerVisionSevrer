@@ -28,10 +28,7 @@ import org.bytedeco.javacpp.opencv_core.Mat;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONObject;
-import tl1.asv.projet.recognition.CVUtils;
-import tl1.asv.projet.recognition.OneImage;
-import tl1.asv.projet.recognition.RecognitionAnalyseController;
-import tl1.asv.projet.recognition.recoImage;
+import tl1.asv.projet.recognition.*;
 
 
 /**
@@ -49,6 +46,17 @@ public class MyResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String getIt() {
+        return "Got it!";
+    }
+
+
+    @GET
+    @Path("/test")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getServ() {
+
+        GetFromServer.init();
+
         return "Got it!";
     }
 

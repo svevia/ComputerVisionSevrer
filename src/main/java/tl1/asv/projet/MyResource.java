@@ -102,7 +102,7 @@ public class MyResource {
     @Path("/analyse/{file}")
     @Produces(MediaType.TEXT_PLAIN)
     public Response analyse(@PathParam("file") String file) {
-
+        System.out.println("Starting analyse");
         String className = "NOK";
 
         String filepath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + file;

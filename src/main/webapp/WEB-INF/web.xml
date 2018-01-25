@@ -19,4 +19,9 @@
         <servlet-name>Jersey Web Application</servlet-name>
         <url-pattern>/webapi/*</url-pattern>
     </servlet-mapping>
+    <listener>  
+    <listener-class>
+    tl1.asv.projet.AppContextListener
+    </listener-class>
+</listener>  
 </web-app>

@@ -1,37 +1,22 @@
 package tl1.asv.projet;
 
-import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
 import static tl1.asv.projet.Config.SERVER_UPLOAD_LOCATION_FOLDER;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-import java.net.URLDecoder;
-import java.io.UnsupportedEncodingException;
-
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.bytedeco.javacpp.opencv_core.Mat;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.json.JSONObject;
-import tl1.asv.projet.recognition.CVUtils;
-import tl1.asv.projet.recognition.OneImage;
+
 import tl1.asv.projet.recognition.RecognitionAnalyseController;
-import tl1.asv.projet.recognition.recoImage;
 
 
 /**
@@ -39,7 +24,7 @@ import tl1.asv.projet.recognition.recoImage;
  */
 @Path("myresource")
 public class MyResource {
-
+	
     /**
      * Method handling HTTP GET requests. The returned object will be sent
      * to the client as "text/plain" media type.
@@ -155,4 +140,7 @@ public class MyResource {
         int result = test.nextInt(1000000000);
         return result;
     }
+    
+
+    
 }

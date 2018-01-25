@@ -103,8 +103,19 @@
 </dependency>
 
 
+		<dependency>
+			<groupId>com.google.http-client</groupId>
+			<artifactId>google-http-client</artifactId>
+			<version>1.23.0</version>
+		</dependency>
 
-		<!-- uncomment this to get JSON support <dependency> <groupId>org.glassfish.jersey.media</groupId> 
+		<dependency>
+			<groupId>com.google.http-client</groupId>
+			<artifactId>google-http-client-jackson2</artifactId>
+			<version>1.23.0</version>
+		</dependency>
+
+		<!-- uncomment this to get JSON support <dependency> <groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-binding</artifactId> </dependency> -->
 	</dependencies>
 	<properties>

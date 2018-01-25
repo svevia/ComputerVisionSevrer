@@ -15,8 +15,8 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-
 import tl1.asv.projet.recognition.RecognitionAnalyseController;
+import tl1.asv.projet.recognition.*;
 
 
 /**
@@ -34,6 +34,17 @@ public class MyResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String getIt() {
+        return "Got it!";
+    }
+
+
+    @GET
+    @Path("/test")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getServ() {
+
+        GetFromServer.init();
+
         return "Got it!";
     }
 

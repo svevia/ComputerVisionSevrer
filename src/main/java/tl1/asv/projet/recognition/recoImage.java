@@ -13,10 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.bytedeco.javacpp.Loader;
-import org.bytedeco.javacpp.opencv_calib3d;
-import org.bytedeco.javacpp.opencv_imgproc;
-import org.bytedeco.javacpp.opencv_shape;
+import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.DMatch;
 import org.bytedeco.javacpp.opencv_core.DMatchVector;
 import org.bytedeco.javacpp.opencv_core.KeyPointVector;
@@ -33,6 +30,7 @@ public abstract class recoImage {
     static {
         Loader.load(opencv_calib3d.class);
         Loader.load(opencv_shape.class);
+        Loader.load(opencv_ml.class);
     }
 
     static DMatchVector selectBest(DMatchVector matches, int numberToSelect) {

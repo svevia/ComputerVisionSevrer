@@ -31,7 +31,17 @@ public class AppContextListener implements ServletContextListener{
 			HttpDownloadUtility.downloadFile("http://www-rech.telecom-lille.fr/nonfreesift/" + obj.getVocabulary(),References.DIRECTORY);
 			for(Brand b : obj.getBrands()){
 				HttpDownloadUtility.downloadFile("http://www-rech.telecom-lille.fr/nonfreesift/classifiers/" + b.getClassifier(), References.DIRECTORY);
+
+				for (String image : b.getImages()) {
+					HttpDownloadUtility.downloadFile("http://www-rech.telecom-lille.fr/nonfreesift/train-images/" + image, References.DIRECTORY + "/refs");
+
+				}
+
+
 			}
+
+
+
 			System.out.println(obj.getVocabulary());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

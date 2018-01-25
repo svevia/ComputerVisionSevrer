@@ -25,7 +25,9 @@ public class AppContextListener implements ServletContextListener{
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			References obj = mapper.readValue(new URL("http://www-rech.telecom-lille.fr/nonfreesift/index.json"), References.class);
-			
+
+			References.setSingleton(obj);
+
 			HttpDownloadUtility.downloadFile("http://www-rech.telecom-lille.fr/nonfreesift/" + obj.getVocabulary(),References.DIRECTORY);
 			for(Brand b : obj.getBrands()){
 				HttpDownloadUtility.downloadFile("http://www-rech.telecom-lille.fr/nonfreesift/classifiers/" + b.getClassifier(), References.DIRECTORY);

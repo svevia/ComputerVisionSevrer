@@ -1,11 +1,9 @@
 package tl1.asv.projet.recognition;
 
-import org.bytedeco.javacpp.opencv_core;
 
 import java.io.File;
 import java.util.*;
 
-import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
 import static tl1.asv.projet.Config.SERVER_REFERENCES_FOLDER;
 
 public class RecognitionAnalyseController {
@@ -16,7 +14,6 @@ public class RecognitionAnalyseController {
 
     public String analyse(String filepath) {
         HashMap<OneImage, Float> dists = new HashMap<>();
-        HashMap<String, Float> category = new HashMap<>();
         HashMap<String, Float> categoryDistance = new HashMap<>();
 
         OneImage testImage = CVUtils.createOneImage(filepath);
@@ -61,7 +58,7 @@ public class RecognitionAnalyseController {
             }
 
 
-            // Gets classifier, add a refence image and it's distance from test image
+            // Gets classifier, add a reference image and it's distance from test image
             Classifier classifier = classifiers.get(classifierName);
             classifier.getReferences().add(item.getKey());
             classifier.addDistance(item.getValue());

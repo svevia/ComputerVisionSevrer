@@ -5,9 +5,11 @@ import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.FileStorage;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_features2d.BOWImgDescriptorExtractor;
-import org.bytedeco.javacpp.opencv_xfeatures2d.SIFT;
-import org.opencv.core.Core;
-import org.opencv.ml.CvSVM;
+import org.bytedeco.javacpp.opencv_features2d.FlannBasedMatcher;
+import org.bytedeco.javacpp.opencv_features2d.KeyPoint;
+import org.bytedeco.javacpp.opencv_ml.CvSVM;
+import org.bytedeco.javacpp.opencv_nonfree.SIFT;
+
 import tl1.asv.vocabulary.Brand;
 import tl1.asv.vocabulary.References;
 
@@ -16,16 +18,31 @@ import java.io.FilenameFilter;
 import java.util.*;
 
 import static org.bytedeco.javacpp.opencv_core.CV_STORAGE_READ;
-import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
+import static org.bytedeco.javacpp.opencv_core.NORM_L2;
 import static tl1.asv.projet.Config.SERVER_REFERENCES_FOLDER;
 
 public class RecognitionAnalyseController {
 
+
+    static SIFT sift;
+    static opencv_features2d.BFMatcher matcher;
+
     static {
-        Loader.load(opencv_calib3d.class);
-        Loader.load(opencv_shape.class);
-        Loader.load(opencv_ml.class);
+        Loader.load(opencv_core.class);
+
+
+        int nFeatures = 250;
+        int nOctaveLayers = 5;
+        double contrastThreshold = 0.03;
+        int edgeThreshold = 10;
+        double sigma = 1.6;
+
+
+        sift = new SIFT(nFeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma);
+        matcher = new opencv_features2d.BFMatcher(NORM_L2, false);
     }
+
+
 
     // keep ordered classifiers
     private TreeMap<String, Classifier> classifiers = new TreeMap<>();
@@ -50,61 +67,63 @@ public class RecognitionAnalyseController {
 
     private BOWImgDescriptorExtractor createBowDescriptor(SIFT detector, Mat vocabulary){
 
-        //create a matcher with FlannBased Euclidien distance (possible also with BruteForce-Hamming)
-        final opencv_features2d.FlannBasedMatcher matcher;
-        matcher = new opencv_features2d.FlannBasedMatcher();
-
-        //create BoF (or BoW) descriptor extractor
-        final BOWImgDescriptorExtractor bowide;
-        bowide = new BOWImgDescriptorExtractor(detector, matcher);
-
+        FlannBasedMatcher FBMatcher = new FlannBasedMatcher();  // Create a Matcher with FlannBase Euclidien distance. Used to find the nearest word of the trained vocabulary for each keypoint descriptor of the image
+        opencv_features2d.DescriptorExtractor DExtractor = sift.asDescriptorExtractor(); // Descriptor extractor that is used to compute descriptors for an input image and its keypoints.
+        BOWImgDescriptorExtractor BOWDescriptor = new BOWImgDescriptorExtractor(DExtractor, FBMatcher); // Minimal constructor
         //Set the dictionary with the vocabulary we created in the first step
-        bowide.setVocabulary(vocabulary);
+        BOWDescriptor.setVocabulary(vocabulary);
+
         System.out.println("Vocab is set");
 
-        return bowide;
+        return BOWDescriptor;
 
     }
 
 
-    private void
-    lastCode(SIFT detector, BOWImgDescriptorExtractor bowide){
+    private void  lastCode(SIFT detector, BOWImgDescriptorExtractor bowide){
+
+
+        /**
+         * truc muche
+         */
+
+
+        Mat imageDescriptor = new Mat();
+        KeyPoint keyPoints = new KeyPoint();
+        Mat inputDescriptors = new Mat();
+
+
+    /*    String photoTest = GlobalTools.toCache(context, testedImagePath , "Pepsi_13.jpg").getAbsolutePath();
+
+        Mat imageTest = GlobalTools.loadImg3ChannelColor(photoTest); // RGB image matrix
+
+
+*/
+
+
+
 
         References singleton = References.getSingleton();
 
         int classNumber = singleton.getBrands().size();
-        String[] class_names;
-        class_names = new String[classNumber];
+        CvSVM[] class_names;
+        class_names = new CvSVM[classNumber];
 
         int i_=0;
         for (Brand brand : singleton.getBrands()) {
-            class_names[i_++] = brand.getClassifier();
-        }
+            //class_names[i_++] = brand.getClassifier();
+            final String finalPath = "etc/" + class_names[i_] ;
 
-
-        Loader.load(opencv_ml.class);
-
-        final CvSVM[] classifiers;
-        classifiers = new CvSVM [classNumber];
-        for (int i = 0 ; i < classNumber ; i++) {
-            //System.out.println("Ok. Creating class name from " + className);
-            //open the file to write the resultant descriptor
-            String finalPath = "etc/" + class_names[i] ;
+            class_names[i_] = new CvSVM();
+            class_names[i_++].load(finalPath);
             System.out.println("Loading ... " + finalPath);
-
-            FileStorage fs = new FileStorage();
-            boolean open = fs.open(finalPath, CV_STORAGE_READ);
-
-            classifiers[i] = new CvSVM();
-            classifiers[i].load(finalPath);
         }
+
+
+
 
         Mat response_hist = new Mat();
-        opencv_core.KeyPoint keypoints = new opencv_core.KeyPoint();
-        Mat inputDescriptors = new Mat();
 
-
-        opencv_core.MatVector imagesVec;
 
         File root = new File("etc/refs");
         FilenameFilter imgFilter = (dir, name) -> {
@@ -114,25 +133,28 @@ public class RecognitionAnalyseController {
 
         File[] imageFiles = root.listFiles(imgFilter);
 
-        imagesVec = new opencv_core.MatVector(imageFiles.length);
-
-        //  Mat labels = new Mat(imageFiles.length, 1, CV_32SC1);
-        //  IntBuffer labelsBuf = labels.createBuffer();
+        opencv_core.MatVector imagesVec = new opencv_core.MatVector(imageFiles.length);
 
 
         for (File im : imageFiles) {
 
-            //System.out.println("path:" + im.getName());
+            System.out.println("path:" + im.getName());
 
-            Mat imageTest = imread(im.getAbsolutePath(), 1);
-          //  detector.detectAndCompute(imageTest, Mat.EMPTY, keypoints, inputDescriptors);
+          //  Mat imageTest = imread(im.getAbsolutePath(), 1);
 
-            opencv_core.KeyPointVector keyPointVector = new opencv_core.KeyPointVector();
+         /*   opencv_core.KeyPointVector keyPointVector = new opencv_core.KeyPointVector();
             detector.detect(imageTest,keyPointVector);
+
+            System.out.println("kp: "+ keyPointVector.size());
+
+
             detector.compute(imageTest,keyPointVector,inputDescriptors);
 
 
             bowide.compute(imageTest,keyPointVector,response_hist);
+
+            System.out.println("Hist: "+ response_hist.cols() +"*"+response_hist.rows());
+
 
         //    bowide.compute(imageTest, keypoints, response_hist);
 
@@ -143,14 +165,11 @@ public class RecognitionAnalyseController {
             long timePrediction = System.currentTimeMillis();
             // loop for all classes
             for (int i = 0; i < classNumber; i++) {
-                float res = 0f;
                 // classifier prediction based on reconstructed histogram
-            //    float res = classifiers[i].predict(response_hist, true);
+                float res = classifiers[i].predict(response_hist);
 
 
-                //classifiers[i].predict(response_hist,true);
-
-                //System.out.println(class_names[i] + " is " + res);
+                System.out.println(class_names[i] + " is " + res);
                 if (res < minf) {
                     minf = res;
                     bestMatch = class_names[i];
@@ -158,6 +177,8 @@ public class RecognitionAnalyseController {
             }
             timePrediction = System.currentTimeMillis() - timePrediction;
             System.out.println(im.getName() + "  predicted as " + bestMatch + " in " + timePrediction + " ms");
+*/
+
 
         }
 
@@ -174,103 +195,14 @@ public class RecognitionAnalyseController {
 
 
         Mat vocabulary = loadVocabulary();
-        BOWImgDescriptorExtractor bowide = createBowDescriptor(recoImage.sift, vocabulary);
+        BOWImgDescriptorExtractor bowide = createBowDescriptor(sift, vocabulary);
 
-        lastCode(recoImage.sift,bowide);
+        lastCode(sift,bowide);
 
         return "IP";
     }
 
 
-
-
-
-    public String analyse(String filepath, boolean notused) {
-        HashMap<OneImage, Float> dists = new HashMap<>();
-        HashMap<String, Float> categoryDistance = new HashMap<>();
-
-        OneImage testImage = CVUtils.createOneImage(filepath);
-
-
-        /**
-         * On teste les distances entre l'image de test et les images de références.
-         */
-        for (File f : listImages()) {
-            if (!f.isDirectory()) {
-                OneImage refImage = CVUtils.createOneImage(f.getAbsolutePath(), f.getName());
-
-                float resultMoy = recoImage.getDist(testImage, refImage);
-
-                dists.put(refImage, resultMoy);
-                System.out.println("Result for: " + f.getName() + "\t" + resultMoy);
-            }
-        }
-
-        /**
-         *
-         */
-        Set<Map.Entry<OneImage, Float>> sortedSet = dists.entrySet();
-
-        Iterator<Map.Entry<OneImage, Float>> testPrint = sortedSet.iterator();
-        while (testPrint.hasNext()) {
-            Map.Entry<OneImage, Float> next = testPrint.next();
-            System.out.println("next: " + next.getKey().getPath() + ":" + next.getValue());
-        }
-
-        Iterator<Map.Entry<OneImage, Float>> it = sortedSet.iterator();
-        int kMatch = sortedSet.size();
-
-        // parcours des 7 premières je crois...
-        for (int i = 0; i < kMatch; i++) {
-            Map.Entry<OneImage, Float> item = it.next();
-            String classifierName = item.getKey().getName().split("_")[0];
-
-            if (!classifiers.containsKey(classifierName)) {
-                classifiers.put(classifierName, new Classifier(classifierName));
-
-            }
-
-
-            // Gets classifier, add a reference image and it's distance from test image
-            Classifier classifier = classifiers.get(classifierName);
-            classifier.getReferences().add(item.getKey());
-            classifier.addDistance(item.getValue());
-
-        }
-
-
-        float lowest = -1;
-        String mostConfident = "NOK";
-
-        // print all distances
-        for (String key :
-                classifiers.keySet()) {
-            float val = classifiers.get(key).getDistance();
-
-            int nbReferences = classifiers.get(key).getReferences().size();
-
-            System.out.println("Original Value: " + key + ":" + val + " /" + nbReferences);
-            val /= nbReferences; // moyenne par le nombre d'entrée référencée
-            categoryDistance.put(key, val);
-            System.out.println("Final Value: " + key + ":" + val);
-
-
-            // set as the lowest if needed
-            if (lowest == -1 || lowest > val) {
-                lowest = val;
-                mostConfident = key;
-                System.out.println("Becoming new lowest");
-            }
-
-        }
-
-
-
-
-        System.out.println("Most confident: " + mostConfident);
-
-        return mostConfident;
-    }
 
 
 

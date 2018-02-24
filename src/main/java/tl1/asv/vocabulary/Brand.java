@@ -7,7 +7,7 @@ public class Brand {
 	private String url;
 	private String classifier;
 	private List<String> images;
-	
+
 	
 	public String getBrandname() {
 		return brandname;
@@ -33,6 +33,4 @@ public class Brand {
 	public void setImages(List<String> images) {
 		this.images = images;
 	}
-	
-	
 }

@@ -15,7 +15,6 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import tl1.asv.projet.recognition.RecognitionAnalyseController;
 import tl1.asv.projet.recognition.*;
 
 
@@ -46,6 +45,19 @@ public class MyResource {
         GetFromServer.init();
 
         return "Got it!";
+    }
+
+
+    @GET
+    @Path("/train")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String trainSErv() {
+
+        TrainingCluster trainingCluster = new TrainingCluster();
+        trainingCluster.train();
+
+
+        return "trained";
     }
 
 
@@ -103,20 +115,13 @@ public class MyResource {
 
         String filepath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + file;
 
-        RecognitionAnalyseController recognitionAnalyseController = null;
-        try {
-            recognitionAnalyseController= new RecognitionAnalyseController();
-            className = recognitionAnalyseController.analyse(filepath);
-        } catch(Exception ex){
-            System.out.println("Exception on thread.");
-            ex.printStackTrace();
-        } finally {
-            if(recognitionAnalyseController!=null){
-                recognitionAnalyseController = null;
-                System.gc();
-            }
-        }
 
+        RecognitionTrainerController recognitionTrainerController = new RecognitionTrainerController();
+        try {
+            className = recognitionTrainerController.analyse(filepath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
 
         return Response.status(200).entity(className).build();

@@ -7,9 +7,11 @@ public class References {
     public static final String DIRECTORY = "etc";
     private static References references = null;
 
-    private String vocabulary;
+
+    private String vocabulary = "vocab.yml";
     private List<Brand> brands;
 
+    private String vocab_hash;
 
     public String getVocabulary() {
         return vocabulary;
@@ -38,5 +40,11 @@ public class References {
         references=references_;
     }
 
+    public String getVocab_hash() {
+        return vocab_hash;
+    }
 
+    public void setVocab_hash(String vocab_hash) {
+        this.vocab_hash = vocab_hash;
+    }
 }

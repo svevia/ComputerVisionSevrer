@@ -78,7 +78,22 @@ public class RecognitionTrainerController {
         System.out.println("Predicting file " + filepath);
         Mat testImg = imread(filepath, opencv_imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 
-        //opencv_imgproc.resize(testImg, testImg, new opencv_core.Size(500, 700));
+        /*
+        400 * x = 700
+        x = 700 / 400
+
+        hori
+
+
+         */
+
+        int wantedHeight = 700;
+        float div = (wantedHeight * 1.0f) / testImg.size().height();
+
+        float width = div * testImg.size().width();
+
+        System.out.println("Resizing to " + width + ":" + wantedHeight);
+        opencv_imgproc.resize(testImg, testImg, new opencv_core.Size((int) width, (int) wantedHeight));
 
         KeyPointVector keypoints = new KeyPointVector();
 
@@ -109,7 +124,6 @@ public class RecognitionTrainerController {
 
                 float ret = svm.predict(histo, retM, 1);
 
-                System.out.println("ret=" + ret);
                 if (retM != null && retM.cols() > 0 && retM.rows() > 0) {
                     FloatRawIndexer indexer = retM.createIndexer();
                     ret = indexer.get(0, 0); //R�cup�ration de la valeur dans la MAT

@@ -1,8 +1,8 @@
 package tl1.asv.projet.recognition;
 
 
-import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.indexer.FloatRawIndexer;
+import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.opencv_core.KeyPointVector;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_features2d.BOWImgDescriptorExtractor;
@@ -10,7 +10,6 @@ import tl1.asv.vocabulary.Brand;
 import tl1.asv.vocabulary.References;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 

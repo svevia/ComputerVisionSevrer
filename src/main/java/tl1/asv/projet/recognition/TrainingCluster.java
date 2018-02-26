@@ -3,6 +3,7 @@ package tl1.asv.projet.recognition;
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.indexer.FloatRawIndexer;
 import org.bytedeco.javacpp.opencv_core.Mat;
+import org.bytedeco.javacpp.opencv_features2d.BOWKMeansTrainer;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,9 +19,8 @@ public class TrainingCluster {
     private JSONObject indexJson;
     private String vocabularyDir = "etc/";
     private Mat vocabulary;
+    //private File rootDir = new File("datasets/processedRefs");
     private File rootDir = new File("etc/refs");
-
-
 
 
     int nFeatures = 0;
@@ -28,7 +28,7 @@ public class TrainingCluster {
     double contrastThreshold = 0.03;
     double edgeThreshold = 10;
     double sigma = 1.6;
-    private int maxWords=200;
+    private int maxWords = 200;
     private String classifierDir = "etc/classifiers";
 
 
@@ -66,19 +66,32 @@ public class TrainingCluster {
             term.type(opencv_core.TermCriteria.MAX_ITER);
             term.epsilon(0.0001);
             term.maxCount(100);
-            opencv_features2d.BOWKMeansTrainer trainer = new opencv_features2d.BOWKMeansTrainer(this.maxWords, term, 1, opencv_core.KMEANS_RANDOM_CENTERS);
+            BOWKMeansTrainer trainer = new BOWKMeansTrainer(this.maxWords, term, 1, opencv_core.KMEANS_RANDOM_CENTERS);
             int i = 0;
             for (File imgTrain : imagesTrain) {
+                if (!imgTrain.isFile()) {
+                    continue;
+                }
                 Mat trainMat = opencv_imgcodecs.imread(imgTrain.getAbsolutePath(), opencv_imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
                 opencv_core.KeyPointVector keypoints = new opencv_core.KeyPointVector();
                 Mat descriptor = new Mat();
                 opencv_xfeatures2d.SIFT sift = opencv_xfeatures2d.SIFT.create(nFeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma);
-                sift.detect(trainMat,keypoints);
-                sift.compute(trainMat, keypoints,descriptor);
-                trainer.add(descriptor);
-                System.out.println("Train Vocabulary " + (i + 1) + " => " + imgTrain.getName());
+                sift.detect(trainMat, keypoints);
+                sift.compute(trainMat, keypoints, descriptor);
+
+                //
+                if (descriptor.rows() > 0 && descriptor.cols() > 0) {
+                    trainer.add(descriptor);
+                    System.out.println("Train Vocabulary " + (i + 1) + " => " + imgTrain.getName());
+
+                } else {
+                    System.out.println(imgTrain.getName() + " not working...");
+                }
+
                 i++;
             }
+
+            System.out.println("Clustering now..");
             this.vocabulary = trainer.cluster();
 
             opencv_core.FileStorage ds = new opencv_core.FileStorage(this.vocabularyDir + "/vocab.yml", opencv_core.FileStorage.WRITE);
@@ -118,6 +131,10 @@ public class TrainingCluster {
         extractor.setVocabulary(this.vocabulary);
         File classLocation = null;
         for (File trainImg : this.rootDir.listFiles()) {
+            if (!trainImg.isFile()) {
+                continue;
+            }
+
             if (!class_name.equals(trainImg.getName().split("_")[0])) {
                 class_name = trainImg.getName().split("_")[0];
                 classLocation = new File(this.classifierDir + "/" + class_name + ".xml");
@@ -148,6 +165,12 @@ public class TrainingCluster {
         JSONArray jsonArrayTmp = new JSONArray();
         int[] resp = new int[samples.rows()];
         for (File trainImg : this.rootDir.listFiles()) {
+            if (!trainImg.isFile()) {
+                System.out.println("skipping " + trainImg.getName());
+                continue;
+            } else {
+                System.out.println("file=" + trainImg.getName());
+            }
 
             if (globalIndex != 0 && (!class_name.equals(trainImg.getName().split("_")[0])
                     || globalIndex == this.rootDir.listFiles().length - 1)) {
@@ -182,7 +205,7 @@ public class TrainingCluster {
                     svm.setType(opencv_ml.SVM.C_SVC);
                     svm.train(samples, opencv_ml.ROW_SAMPLE, labels);
                     svm.save(this.classifierDir + "/" + class_name + ".xml");
-
+                    System.out.println("Saving " + class_name+".xml");
                     //Création objet
                     try {
                         JSONObject tmpObj = new JSONObject();

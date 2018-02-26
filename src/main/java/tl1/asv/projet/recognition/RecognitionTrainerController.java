@@ -47,8 +47,6 @@ public class RecognitionTrainerController {
     }
 
 
-
-
     private static Mat loadVocabulary() {
 
         File fileP = new File(References.DIRECTORY + "/" + References.getSingleton().getVocabulary());
@@ -63,7 +61,7 @@ public class RecognitionTrainerController {
     public String analyse(String filepath) throws Exception {
 
 
-        if(vocabulary==null){
+        if (vocabulary == null) {
             throw new Exception("Vocabulary is null.");
         }
 
@@ -80,7 +78,7 @@ public class RecognitionTrainerController {
         System.out.println("Predicting file " + filepath);
         Mat testImg = imread(filepath, opencv_imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 
-        opencv_imgproc.resize(testImg, testImg, new opencv_core.Size(500, 700));
+        //opencv_imgproc.resize(testImg, testImg, new opencv_core.Size(500, 700));
 
         KeyPointVector keypoints = new KeyPointVector();
 
@@ -89,34 +87,45 @@ public class RecognitionTrainerController {
         System.out.println("Calculate words frequencies's histogram");
 
         Mat histo = new Mat();
-        extractor.compute(testImg, keypoints, histo, null, null);
-
-
+        extractor.compute(testImg, keypoints, histo, new opencv_core.IntVectorVector(), new Mat());
 
 
         float minF = Float.MAX_VALUE;
         String bestMatch = "IP";
         for (Brand brand : classPath) {
-            opencv_ml.SVM svm;
 
 
-            System.out.println("Loading classifier: " + brand.getClassifier());
-            svm = opencv_ml.SVM.load(References.DIRECTORY + "/classifiers/" + brand.getClassifier());
+            try {
+                opencv_ml.SVM svm;
 
-            Mat retM = new Mat();
-            float ret = svm.predict(histo, retM, 1);
 
-            FloatRawIndexer indexer = retM.createIndexer();
-            if (retM.cols() > 0 && retM.rows() > 0) {
-                ret = indexer.get(0, 0); //R�cup�ration de la valeur dans la MAT
+                System.out.println("Loading classifier: " + brand.getClassifier());
+                svm = opencv_ml.SVM.load(References.DIRECTORY + "/classifiers/" + brand.getClassifier());
 
+                Mat retM = new Mat();
+
+                svm.setKernel(opencv_ml.SVM.RBF);
+                svm.setType(opencv_ml.SVM.C_SVC);
+
+                float ret = svm.predict(histo, retM, 1);
+
+                System.out.println("ret=" + ret);
+                if (retM != null && retM.cols() > 0 && retM.rows() > 0) {
+                    FloatRawIndexer indexer = retM.createIndexer();
+                    ret = indexer.get(0, 0); //R�cup�ration de la valeur dans la MAT
+
+                }
+                if (ret < minF) {
+                    minF = ret;
+                    bestMatch = brand.getBrandname();
+                }
+                System.out.println("Prediction for class " + brand.getBrandname() + " : " + ret);
+            } catch (Exception ex) {
+                System.out.println("ERROR FOR PREDICTION FROM " + brand.getBrandname());
+                // ex.printStackTrace();
             }
-            if (ret < minF) {
-                minF = ret;
-                bestMatch = brand.getBrandname();
-            }
-            System.out.println("Prediction for class " + brand.getBrandname() + " : " + ret);
         }
+
 
         return bestMatch;
 

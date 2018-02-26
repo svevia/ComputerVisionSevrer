@@ -28,7 +28,7 @@ public class TrainingCluster {
     double contrastThreshold = 0.03;
     double edgeThreshold = 10;
     double sigma = 1.6;
-    private int maxWords = 200;
+    private int maxWords = 100;
     private String classifierDir = "etc/classifiers";
 
 
@@ -60,14 +60,18 @@ public class TrainingCluster {
             this.vocabulary = loader.get("vocabulary").mat();
             loader.close();
             System.out.println("Vocabulaire chargé !");
+
         } else if (rootDir != null) {
-            File[] imagesTrain = rootDir.listFiles();
             opencv_core.TermCriteria term = new opencv_core.TermCriteria();
             term.type(opencv_core.TermCriteria.MAX_ITER);
             term.epsilon(0.0001);
-            term.maxCount(100);
+            term.maxCount(250);
             BOWKMeansTrainer trainer = new BOWKMeansTrainer(this.maxWords, term, 1, opencv_core.KMEANS_RANDOM_CENTERS);
             int i = 0;
+            File[] imagesTrain = rootDir.listFiles();
+            if(imagesTrain==null){
+                System.out.println("Error...");
+            }
             for (File imgTrain : imagesTrain) {
                 if (!imgTrain.isFile()) {
                     continue;
@@ -93,6 +97,7 @@ public class TrainingCluster {
 
             System.out.println("Clustering now..");
             this.vocabulary = trainer.cluster();
+
 
             opencv_core.FileStorage ds = new opencv_core.FileStorage(this.vocabularyDir + "/vocab.yml", opencv_core.FileStorage.WRITE);
             ds.write("vocabulary", this.vocabulary);
@@ -146,8 +151,9 @@ public class TrainingCluster {
                 trainMat = opencv_imgcodecs.imread(trainImg.getAbsolutePath(), opencv_imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 
                 opencv_core.KeyPointVector keypoints = new opencv_core.KeyPointVector();
+                Mat descriptors = new Mat();
 
-                sift.detect(trainMat, keypoints);
+                sift.detectAndCompute(trainMat, new Mat(), keypoints, descriptors);
 
                 System.out.println("Computing words for " + trainImg.getName());
                 extractor.compute(trainMat, keypoints, histo, new opencv_core.IntVectorVector(), new Mat());
@@ -201,8 +207,7 @@ public class TrainingCluster {
                     Mat labels = new Mat(pointerInt);
 
                     opencv_ml.SVM svm = opencv_ml.SVM.create();
-                    svm.setKernel(opencv_ml.SVM.RBF);
-                    svm.setType(opencv_ml.SVM.C_SVC);
+
                     svm.train(samples, opencv_ml.ROW_SAMPLE, labels);
                     svm.save(this.classifierDir + "/" + class_name + ".xml");
                     System.out.println("Saving " + class_name+".xml");

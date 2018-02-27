@@ -1,5 +1,7 @@
 package tl1.asv.projet;
 
+import static tl1.asv.projet.Config.SERVER_REFERENCES_FOLDER;
+import static tl1.asv.projet.Config.SERVER_STAGING_LOCATION_FOLDER;
 import static tl1.asv.projet.Config.SERVER_UPLOAD_LOCATION_FOLDER;
 
 import java.io.File;
@@ -23,7 +25,7 @@ import tl1.asv.projet.recognition.*;
  */
 @Path("myresource")
 public class MyResource {
-	
+
     /**
      * Method handling HTTP GET requests. The returned object will be sent
      * to the client as "text/plain" media type.
@@ -59,8 +61,6 @@ public class MyResource {
 
         return "trained";
     }
-
-
 
 
     /**
@@ -103,6 +103,7 @@ public class MyResource {
 
     /**
      * Start Analyse
+     *
      * @param file
      * @return
      */
@@ -119,14 +120,88 @@ public class MyResource {
         RecognitionTrainerController recognitionTrainerController = new RecognitionTrainerController();
         try {
             className = recognitionTrainerController.analyse(filepath);
+
+            // move file in staging
+            moveFileToStaging(filepath, className);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-
         return Response.status(200).entity(className).build();
     }
 
+
+    @GET
+    @Path("/validate/{valid}/{file}")
+    public Response validate(@PathParam("file") String file, @PathParam("valid") String validate){
+
+        if(validate.equals("yes")){
+
+            if(moveStgFileToRef(file)){
+                return Response.status(200).entity("moved to refs files").build();
+            } else {
+                return Response.status(500).entity("Error on moving...").build();
+            }
+        } else {
+            if(removeStgFile(file)){
+                return Response.status(200).entity("removed from stg files").build();
+            } else {
+                return Response.status(500).entity("Error on deletion...").build();
+            }
+        }
+
+    }
+
+    /**
+     * Move files to staging for validation.
+     *
+     * @param filepath
+     * @param className
+     */
+    private void moveFileToStaging(String filepath, String className) {
+        File file = new File(filepath);
+
+        String[] split = file.getName().split("_");
+        split[0] = className;
+
+        String finalName = String.join("_", split);
+        String newFilePath = SERVER_STAGING_LOCATION_FOLDER + "/" + finalName;
+
+        file.renameTo(new File(newFilePath));
+        System.out.println(newFilePath + ": new filename for stg");
+    }
+
+
+    /**
+     * Sets image as ref.
+     *
+     * @param filename
+     * @return
+     */
+    private boolean moveStgFileToRef(String filename) {
+        File file = new File(SERVER_STAGING_LOCATION_FOLDER + "/" + filename);
+        if (!file.isFile()) {
+            return false;
+        }
+
+        return file.renameTo(new File(SERVER_REFERENCES_FOLDER + "/" + filename));
+
+    }
+
+    /**
+     * Removes stg file.
+     *
+     * @return
+     */
+    private boolean removeStgFile(String filename) {
+        File file = new File(SERVER_STAGING_LOCATION_FOLDER + "/" + filename);
+        if (!file.isFile()) {
+            return false;
+        }
+
+        return file.delete();
+    }
 
 
     // save uploaded file to a defined location on the server
@@ -156,7 +231,6 @@ public class MyResource {
         int result = test.nextInt(1000000000);
         return result;
     }
-    
 
-    
+
 }

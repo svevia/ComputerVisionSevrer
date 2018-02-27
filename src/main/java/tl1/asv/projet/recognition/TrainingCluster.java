@@ -28,7 +28,7 @@ public class TrainingCluster {
     double contrastThreshold = 0.03;
     double edgeThreshold = 10;
     double sigma = 1.6;
-    private int maxWords = 100;
+    private int maxWords = 50;
     private String classifierDir = "etc/classifiers";
 
 

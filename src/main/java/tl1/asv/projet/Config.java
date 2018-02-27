@@ -6,8 +6,9 @@ public class Config {
     public static final String[] ALLOWED_EXTENSIONS = {"png","jpg", "jpeg"};
 
     public static final String SERVER_UPLOAD_LOCATION_FOLDER = "tmp/img";
+    public static final String SERVER_STAGING_LOCATION_FOLDER = "tmp/stg";
 
-    public static final String SERVER_REFERENCES_FOLDER = "datasets/processedRefs";
+    public static final String SERVER_REFERENCES_FOLDER = "etc/refs";
 
 
     /**

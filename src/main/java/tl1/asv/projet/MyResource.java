@@ -1,9 +1,5 @@
 package tl1.asv.projet;
 
-import static tl1.asv.projet.Config.SERVER_REFERENCES_FOLDER;
-import static tl1.asv.projet.Config.SERVER_STAGING_LOCATION_FOLDER;
-import static tl1.asv.projet.Config.SERVER_UPLOAD_LOCATION_FOLDER;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,11 +9,15 @@ import java.security.SecureRandom;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import tl1.asv.projet.recognition.*;
+
+import static tl1.asv.projet.Config.*;
 
 
 /**
@@ -55,8 +55,32 @@ public class MyResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String trainSErv() {
 
-        TrainingCluster trainingCluster = new TrainingCluster();
-        trainingCluster.train();
+
+        new Thread(() -> {
+
+            /**
+             * remove classifiers
+             */
+            File dirClassifiers = new File(SERVER_CLASSIFIERS_FOLDER);
+            File[] files = dirClassifiers.listFiles();
+            for (File file : files) {
+                if(file.isFile()) file.delete();
+            }
+
+            /**
+             * remove index and vocab
+             */
+            File indexjson = new File(SERVER_ETC_FOLDER+"/index.json");
+            File vocab = new File(SERVER_ETC_FOLDER+"/vocab.yml");
+
+            if(indexjson.isFile()) indexjson.delete();
+            if(vocab.isFile()) vocab.delete();
+
+            TrainingCluster trainingCluster = new TrainingCluster();
+            trainingCluster.train();
+
+
+        }).start();
 
 
         return "trained";
@@ -75,20 +99,29 @@ public class MyResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response uploadFile(
             @FormDataParam("file") InputStream uploadedInputStream,
-            @FormDataParam("file") FormDataContentDisposition fileDetail) {
+            @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @FormDataParam("file") final FormDataBodyPart body) {
 
         String[] fileName = fileDetail.getFileName().split("\\.");
 
         String extension = fileName[fileName.length - 1].toLowerCase();
-        if (!Config.isAllowedExtension(extension)) {
-            return Response.status(415).entity("Extension refused").build();
 
+
+        // generate new filename
+        String newFileName = "test_" + generateRandomInt();
+        String totalPath = newFileName + "." ;
+
+
+        if(fileDetail.getFileName().equals("cropped")){
+            totalPath+=".jpg";
+        }
+        else if (!Config.isAllowedExtension(extension)) {
+            System.out.println("Received: " + body.getMediaType());
+            return Response.status(415).entity("Extension refused").build();
+        } else {
+            totalPath += extension;
         }
 
-
-        String newFileName = "test_" + generateRandomInt();
-
-        String totalPath = newFileName + "." + extension;
         String uploadedFileLocation = SERVER_UPLOAD_LOCATION_FOLDER + "/" + totalPath;
 
         // save it
@@ -184,7 +217,7 @@ public class MyResource {
         if (!file.isFile()) {
             return false;
         }
-
+        System.out.println("Moved " + file.getName() +" to references");
         return file.renameTo(new File(SERVER_REFERENCES_FOLDER + "/" + filename));
 
     }
@@ -199,6 +232,8 @@ public class MyResource {
         if (!file.isFile()) {
             return false;
         }
+
+        System.out.println("Removed " + file.getName() +" to references");
 
         return file.delete();
     }

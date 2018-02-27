@@ -15,6 +15,7 @@ import java.util.TreeMap;
 
 import static org.bytedeco.javacpp.opencv_core.NORM_L2;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
+import static org.bytedeco.javacpp.opencv_imgcodecs.imwrite;
 import static tl1.asv.projet.Config.SERVER_REFERENCES_FOLDER;
 
 public class RecognitionTrainerController {
@@ -74,7 +75,7 @@ public class RecognitionTrainerController {
         BOWImgDescriptorExtractor extractor = new BOWImgDescriptorExtractor(sift, new opencv_features2d.FlannBasedMatcher());
         extractor.setVocabulary(vocabulary);
 
-        //Pr�diction
+        //Prediction
         System.out.println("Predicting file " + filepath);
         Mat testImg = imread(filepath, opencv_imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 
@@ -83,7 +84,6 @@ public class RecognitionTrainerController {
         x = 700 / 400
 
         hori
-
 
          */
 
@@ -94,6 +94,13 @@ public class RecognitionTrainerController {
 
         System.out.println("Resizing to " + width + ":" + wantedHeight);
         opencv_imgproc.resize(testImg, testImg, new opencv_core.Size((int) width, (int) wantedHeight));
+
+        /**
+         * Should save the new image with new size
+         */
+        imwrite(filepath,testImg);
+        System.out.println("Resizing image");
+
 
         KeyPointVector keypoints = new KeyPointVector();
 

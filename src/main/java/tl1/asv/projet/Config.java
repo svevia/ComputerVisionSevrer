@@ -8,6 +8,8 @@ public class Config {
     public static final String SERVER_UPLOAD_LOCATION_FOLDER = "tmp/img";
     public static final String SERVER_STAGING_LOCATION_FOLDER = "tmp/stg";
 
+    public static final String SERVER_CLASSIFIERS_FOLDER = "etc/classifiers";
+    public static final String SERVER_ETC_FOLDER = "etc/classifiers";
     public static final String SERVER_REFERENCES_FOLDER = "etc/refs";
 
 

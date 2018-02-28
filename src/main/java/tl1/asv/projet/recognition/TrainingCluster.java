@@ -74,6 +74,7 @@ public class TrainingCluster {
 
             if (imagesTrain == null) {
                 System.out.println("Error...");
+                return null;
             }
             for (File imgTrain : imagesTrain) {
                 if (!imgTrain.isFile()) {

@@ -1,0 +1,4 @@
+**
+!Dockerfile
+!target/application.jar
+!etc/refs

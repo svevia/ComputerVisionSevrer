@@ -8,7 +8,7 @@ public class References {
     private static References references = null;
 
 
-    private String vocabulary = "vocab.yml";
+    private String vocabulary = "vocabulary.yml";
     private List<Brand> brands;
 
     private String vocab_hash;

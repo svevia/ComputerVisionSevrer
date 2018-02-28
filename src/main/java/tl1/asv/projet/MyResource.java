@@ -64,17 +64,17 @@ public class MyResource {
             File dirClassifiers = new File(SERVER_CLASSIFIERS_FOLDER);
             File[] files = dirClassifiers.listFiles();
             for (File file : files) {
-                if(file.isFile()) file.delete();
+                if (file.isFile()) file.delete();
             }
 
             /**
              * remove index and vocab
              */
-            File indexjson = new File(SERVER_ETC_FOLDER+"/index.json");
-            File vocab = new File(SERVER_ETC_FOLDER+"/vocab.yml");
+            File indexjson = new File(SERVER_ETC_FOLDER + "/index.json");
+            File vocab = new File(SERVER_ETC_FOLDER + "/vocabulary.yml");
 
-            if(indexjson.isFile()) indexjson.delete();
-            if(vocab.isFile()) vocab.delete();
+            if (indexjson.isFile()) indexjson.delete();
+            if (vocab.isFile()) vocab.delete();
 
             TrainingCluster trainingCluster = new TrainingCluster();
             trainingCluster.train();
@@ -109,13 +109,12 @@ public class MyResource {
 
         // generate new filename
         String newFileName = "test_" + generateRandomInt();
-        String totalPath = newFileName + "." ;
+        String totalPath = newFileName + ".";
 
 
-        if(fileDetail.getFileName().equals("cropped")){
-            totalPath+=".jpg";
-        }
-        else if (!Config.isAllowedExtension(extension)) {
+        if (fileDetail.getFileName().equals("cropped")) {
+            totalPath += ".jpg";
+        } else if (!Config.isAllowedExtension(extension)) {
             System.out.println("Received: " + body.getMediaType());
             return Response.status(415).entity("Extension refused").build();
         } else {
@@ -167,17 +166,17 @@ public class MyResource {
 
     @GET
     @Path("/validate/{valid}/{file}")
-    public Response validate(@PathParam("file") String file, @PathParam("valid") String validate){
+    public Response validate(@PathParam("file") String file, @PathParam("valid") String validate) {
 
-        if(validate.equals("yes")){
+        if (validate.equals("yes")) {
 
-            if(moveStgFileToRef(file)){
+            if (moveStgFileToRef(file)) {
                 return Response.status(200).entity("moved to refs files").build();
             } else {
                 return Response.status(500).entity("Error on moving...").build();
             }
         } else {
-            if(removeStgFile(file)){
+            if (removeStgFile(file)) {
                 return Response.status(200).entity("removed from stg files").build();
             } else {
                 return Response.status(500).entity("Error on deletion...").build();
@@ -217,7 +216,7 @@ public class MyResource {
         if (!file.isFile()) {
             return false;
         }
-        System.out.println("Moved " + file.getName() +" to references");
+        System.out.println("Moved " + file.getName() + " to references");
         return file.renameTo(new File(SERVER_REFERENCES_FOLDER + "/" + filename));
 
     }
@@ -233,7 +232,7 @@ public class MyResource {
             return false;
         }
 
-        System.out.println("Removed " + file.getName() +" to references");
+        System.out.println("Removed " + file.getName() + " to references");
 
         return file.delete();
     }

@@ -1,19 +1,15 @@
 package tl1.asv.projet;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import tl1.asv.projet.recognition.TrainingCluster;
 import tl1.asv.vocabulary.Brand;
 import tl1.asv.vocabulary.References;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 
 public class AppContextListener implements ServletContextListener {
 
@@ -32,7 +28,9 @@ public class AppContextListener implements ServletContextListener {
         trainingCluster.train();
 
         localClassifiers();
+
     }
+
 
     private void localClassifiers() {
         System.out.println("Server ok");

@@ -13,6 +13,7 @@ import java.math.BigInteger;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public class TrainingCluster {
 
@@ -54,7 +55,7 @@ public class TrainingCluster {
 
     private Mat buildVocabulary() {
 
-        File voc = new File(this.vocabularyDir + "/vocab.yml");
+        File voc = new File(this.vocabularyDir + "/vocabulary.yml");
         if (voc.exists()) {
             opencv_core.FileStorage loader = new opencv_core.FileStorage(voc.getAbsolutePath(), opencv_core.FileStorage.READ);
             this.vocabulary = loader.get("vocabulary").mat();
@@ -69,7 +70,9 @@ public class TrainingCluster {
             BOWKMeansTrainer trainer = new BOWKMeansTrainer(this.maxWords, term, 1, opencv_core.KMEANS_RANDOM_CENTERS);
             int i = 0;
             File[] imagesTrain = rootDir.listFiles();
-            if(imagesTrain==null){
+            Arrays.sort(imagesTrain);
+
+            if (imagesTrain == null) {
                 System.out.println("Error...");
             }
             for (File imgTrain : imagesTrain) {
@@ -99,7 +102,7 @@ public class TrainingCluster {
             this.vocabulary = trainer.cluster();
 
 
-            opencv_core.FileStorage ds = new opencv_core.FileStorage(this.vocabularyDir + "/vocab.yml", opencv_core.FileStorage.WRITE);
+            opencv_core.FileStorage ds = new opencv_core.FileStorage(this.vocabularyDir + "/vocabulary.yml", opencv_core.FileStorage.WRITE);
             ds.write("vocabulary", this.vocabulary);
             ds.close();
             return this.vocabulary;
@@ -119,9 +122,18 @@ public class TrainingCluster {
     }
 
     public void train() {
+
+        try {
+            checkLockfile();
+        } catch (Exception ex) {
+            System.err.println(ex.getMessage());
+            return;
+        }
+
+
         this.indexJson = new JSONObject();
         try {
-            indexJson.put("vocabulary", "vocab.yml");
+            indexJson.put("vocabulary", "vocabulary.yml");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -135,7 +147,11 @@ public class TrainingCluster {
         opencv_features2d.BOWImgDescriptorExtractor extractor = new opencv_features2d.BOWImgDescriptorExtractor(sift, new opencv_features2d.FlannBasedMatcher());
         extractor.setVocabulary(this.vocabulary);
         File classLocation = null;
-        for (File trainImg : this.rootDir.listFiles()) {
+
+        File[] imagesTrain = this.rootDir.listFiles();
+        Arrays.sort(imagesTrain);
+
+        for (File trainImg : imagesTrain) {
             if (!trainImg.isFile()) {
                 continue;
             }
@@ -164,7 +180,6 @@ public class TrainingCluster {
 
         //Fabrication des SVM avec les labels
         int globalIndex = 0;
-        int currentSvm = 0;
         int indexStart = 0;
         int indexStop = samples.rows();
         class_name = "";
@@ -184,15 +199,8 @@ public class TrainingCluster {
                 if (classLocation.exists()) {
                     System.out.println("Existing SVM for classe " + class_name);
                     //Création objet
-                    try {
-                        JSONObject tmpObj = new JSONObject();
-                        tmpObj.put("brandname", class_name);
-                        tmpObj.put("url", "");
-                        tmpObj.put("classifier", class_name + ".xml");
-                        jsonArrayTmp.put(tmpObj);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+
+                    addArrayTmpJSON(class_name, jsonArrayTmp);
                 } else {
                     System.out.println("Save SVM for classe " + class_name);
                     indexStop = globalIndex;
@@ -210,19 +218,10 @@ public class TrainingCluster {
 
                     svm.train(samples, opencv_ml.ROW_SAMPLE, labels);
                     svm.save(this.classifierDir + "/" + class_name + ".xml");
-                    System.out.println("Saving " + class_name+".xml");
+                    System.out.println("Saving " + class_name + ".xml");
+
                     //Création objet
-                    try {
-                        JSONObject tmpObj = new JSONObject();
-                        tmpObj.put("brandname", class_name);
-                        tmpObj.put("url", "");
-                        tmpObj.put("classifier", class_name + ".xml");
-                        jsonArrayTmp.put(tmpObj);
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
+                    addArrayTmpJSON(class_name, jsonArrayTmp);
                 }
             }
             if (!class_name.equals(trainImg.getName().split("_")[0])) {
@@ -235,23 +234,60 @@ public class TrainingCluster {
         try {
             indexJson.put("brands", jsonArrayTmp);
             String hash = "";
-            File vocab = new File(this.vocabularyDir + "/vocab.yml");
+            File vocab = new File(this.vocabularyDir + "/vocabulary.yml");
             if (vocab.exists()) {
                 System.out.println("Signing with md5");
                 hash = this.getHashMd5(vocab.getAbsolutePath());
                 this.indexJson.put("vocab_hash", hash);
-                File fileIndex = new File(this.vocabularyDir + "\\index.json");
+                File fileIndex = new File(this.vocabularyDir + "/" + "index.json");
                 FileWriter fw = new FileWriter(fileIndex);
                 fw.write(this.indexJson.toString());
                 fw.close();
             } else {
-                System.out.println("Error when finalizing, please clear directory data and try again");
+                System.err.println("Error when finalizing, please clear directory data and try again");
+                removeLockfile();
+
             }
 
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+
+        removeLockfile();
+
+    }
+
+    /**
+     * Crée début de structure json
+     * @param class_name
+     * @param jsonArrayTmp
+     */
+    private void addArrayTmpJSON(String class_name, JSONArray jsonArrayTmp) {
+        try {
+            JSONObject tmpObj = new JSONObject();
+            tmpObj.put("brandname", class_name);
+            tmpObj.put("url", "");
+            tmpObj.put("classifier", class_name + ".xml");
+            jsonArrayTmp.put(tmpObj);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void checkLockfile() throws Exception {
+        File lock = new File("etc/train.lock");
+        if (lock.exists()) {
+            throw new Exception("Lock file is present.");
+        }
+    }
+
+    private void removeLockfile() {
+        File lock = new File("etc/train.lock");
+        if (lock.exists()) {
+            lock.delete();
         }
     }
 }

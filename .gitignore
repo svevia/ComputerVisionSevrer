@@ -26,3 +26,5 @@ target/
 *.iml
 tmp/
 etc/
+
+\.extract/

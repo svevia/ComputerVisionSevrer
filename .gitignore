@@ -25,6 +25,8 @@ hs_err_pid*
 target/
 *.iml
 tmp/
-etc/
+etc/classifiers/*
+etc/index.json
+etc/vocabulary.yml
 
 \.extract/

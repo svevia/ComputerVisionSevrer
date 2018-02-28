@@ -126,6 +126,7 @@ public class TrainingCluster {
 
         try {
             checkLockfile();
+            createLockfile();
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
             return;
@@ -282,6 +283,12 @@ public class TrainingCluster {
         File lock = new File("etc/train.lock");
         if (lock.exists()) {
             throw new Exception("Lock file is present.");
+        }
+    }
+    private void createLockfile() throws Exception {
+        File lock = new File("etc/train.lock");
+        if (!lock.createNewFile()) {
+            throw new Exception("Can't create lock file");
         }
     }
 

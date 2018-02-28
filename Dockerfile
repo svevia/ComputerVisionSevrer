@@ -15,3 +15,4 @@ VOLUME ["/opt/local/etc"]
 
 CMD ["java", "-jar", "/opt/local/application.jar"]
 
+HEALTHCHECK CMD

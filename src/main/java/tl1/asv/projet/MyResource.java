@@ -6,15 +6,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
+import com.google.api.core.ApiFuture;
+import com.google.api.core.ApiFutureCallback;
+import com.google.firebase.messaging.*;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import sun.rmi.runtime.Log;
+import tl1.asv.projet.db.ClientsDatabase;
 import tl1.asv.projet.recognition.*;
 
 import static tl1.asv.projet.Config.*;
@@ -54,7 +63,6 @@ public class MyResource {
     @Path("/train")
     @Produces(MediaType.TEXT_PLAIN)
     public String trainSErv() {
-
 
         new Thread(() -> {
 
@@ -142,25 +150,100 @@ public class MyResource {
     @GET
     @Path("/analyse/{file}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response analyse(@PathParam("file") String file) {
+    public Response analyse(@PathParam("file") String file, @QueryParam("token") String token, @QueryParam("fcm") String fcm) {
         System.out.println("Starting analyse");
-        String className = "NOK";
 
-        String filepath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + file;
+        if (!ClientsDatabase.checkPair(fcm, token)) {
+           /* System.err.println("Tokens not authorized.");
+            return Response.status(403).entity("Tokens mismatch").build();*/
+        }
 
 
-        RecognitionTrainerController recognitionTrainerController = new RecognitionTrainerController();
+        Thread t = new Thread(() -> {
+            String className = "NOK";
+
+            String filepath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + file;
+
+
+            RecognitionTrainerController recognitionTrainerController = new RecognitionTrainerController();
+            try {
+                className = recognitionTrainerController.analyse(filepath);
+
+                // move file in staging
+                moveFileToStaging(filepath, className);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+            // have to notify the client
+            FirebaseMessaging firebaseMessaging = FirebaseMessaging.getInstance();
+
+            Message message = Message.builder()
+                    .putData("action", "analyse")
+                    .putData("prediction", className)
+                    .putData("code","1")
+                    .setToken(fcm)
+                    .build();
+            System.out.println("Sent to " + fcm);
+
+            try {
+                String firebaseResult = null;
+                firebaseResult = firebaseMessaging.sendAsync(message).get();
+
+                System.out.println("Message sent to " + token);
+                System.out.println(firebaseResult);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        });
+        t.start();
+
+        return Response.status(200).entity("IP").build();
+    }
+
+
+    @GET
+    @Path("/tokregister/{token}")
+    public Response regtoken(@PathParam("token") String token) {
+
+        if (token.isEmpty() || token.length() < 10) {
+            return Response.status(400).entity("Bad token").build();
+        }
+
+        HashMap<String, String> clients = ClientsDatabase.clients;
+
+        if (clients.get(token) != null) {
+            System.out.println(token + " device has arrived, but already defined. Regenerating.");
+        } else {
+            System.out.println(token + " device has arrived,generating new token.");
+        }
+
+
+        String tok2 = "id-" + generateRandomInt();
+        clients.put(token, tok2);
+
+        // register to default topic "news"
+        TopicManagementResponse response = null;
         try {
-            className = recognitionTrainerController.analyse(filepath);
+            response = FirebaseMessaging.getInstance().subscribeToTopicAsync(Arrays.asList(token), Config.DEFAULT_FCM_TOPIC).get();
+            System.out.println(response.getSuccessCount() + " tokens were subscribed successfully");
 
-            // move file in staging
-            moveFileToStaging(filepath, className);
-
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
             e.printStackTrace();
         }
 
-        return Response.status(200).entity(className).build();
+
+
+
+        return Response.status(200).entity(tok2).build();
+
     }
 
 

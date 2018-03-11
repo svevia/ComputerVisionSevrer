@@ -11,6 +11,7 @@ public class Config {
     public static final String SERVER_CLASSIFIERS_FOLDER = "etc/classifiers";
     public static final String SERVER_ETC_FOLDER = "etc/classifiers";
     public static final String SERVER_REFERENCES_FOLDER = "etc/refs";
+    public static final String DEFAULT_FCM_TOPIC = "news";
 
 
     /**

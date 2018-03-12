@@ -1,10 +1,8 @@
 package tl1.asv.projet.recognition;
 
-import com.google.firebase.messaging.AndroidNotification;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
-import com.sun.org.apache.xpath.internal.operations.And;
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.indexer.FloatRawIndexer;
 import org.bytedeco.javacpp.opencv_core.Mat;
@@ -13,14 +11,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import tl1.asv.projet.Config;
-import tl1.asv.projet.db.ClientsDatabase;
 
 import java.io.*;
 import java.math.BigInteger;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class TrainingCluster {
@@ -37,7 +33,7 @@ public class TrainingCluster {
     double contrastThreshold = 0.03;
     double edgeThreshold = 10;
     double sigma = 1.6;
-    private int maxWords = 50;
+    private int maxWords = 150;
     private String classifierDir = "etc/classifiers";
 
 

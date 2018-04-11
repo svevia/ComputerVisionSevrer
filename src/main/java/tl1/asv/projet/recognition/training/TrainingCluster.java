@@ -1,4 +1,4 @@
-package tl1.asv.projet.recognition;
+package tl1.asv.projet.recognition.training;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;

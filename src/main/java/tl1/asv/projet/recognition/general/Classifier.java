@@ -1,4 +1,4 @@
-package tl1.asv.projet.recognition;
+package tl1.asv.projet.recognition.general;
 
 import java.util.ArrayList;
 import java.util.List;

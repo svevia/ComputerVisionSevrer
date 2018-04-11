@@ -7,9 +7,9 @@ import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import tl1.asv.projet.db.ClientsDatabase;
-import tl1.asv.projet.recognition.GetFromServer;
-import tl1.asv.projet.recognition.RecognitionTrainerController;
-import tl1.asv.projet.recognition.TrainingCluster;
+import tl1.asv.projet.recognition.general.GetFromServer;
+import tl1.asv.projet.recognition.training.RecognitionTrainerController;
+import tl1.asv.projet.recognition.training.TrainingCluster;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

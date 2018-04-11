@@ -1,4 +1,4 @@
-package tl1.asv.projet.recognition;
+package tl1.asv.projet.recognition.general;
 
 import com.google.api.client.http.*;
 import com.google.api.client.http.apache.ApacheHttpTransport;

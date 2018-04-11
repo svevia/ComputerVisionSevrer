@@ -1,4 +1,4 @@
-package tl1.asv.projet.recognition;
+package tl1.asv.projet.recognition.general;
 
 import org.bytedeco.javacpp.opencv_core;
 
@@ -13,7 +13,7 @@ public class OneImage {
     opencv_core.Mat descriptors;
     private String name;
 
-    protected OneImage(String path, opencv_core.Mat cvtColor) {
+    public OneImage(String path, opencv_core.Mat cvtColor) {
 
         this.path = path;
         this.img = cvtColor;

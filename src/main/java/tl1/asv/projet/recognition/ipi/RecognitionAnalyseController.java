@@ -1,6 +1,7 @@
-package tl1.asv.projet.recognition;
+package tl1.asv.projet.recognition.ipi;
 
-import org.bytedeco.javacpp.opencv_core;
+import tl1.asv.projet.recognition.general.Classifier;
+import tl1.asv.projet.recognition.general.OneImage;
 
 import java.io.File;
 import java.util.*;

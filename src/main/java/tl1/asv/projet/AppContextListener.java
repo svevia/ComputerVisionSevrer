@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.sun.org.apache.xpath.internal.SourceTree;
-import tl1.asv.projet.recognition.TrainingCluster;
+import tl1.asv.projet.recognition.training.TrainingCluster;
 import tl1.asv.vocabulary.Brand;
 import tl1.asv.vocabulary.References;
 
@@ -14,7 +12,6 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 

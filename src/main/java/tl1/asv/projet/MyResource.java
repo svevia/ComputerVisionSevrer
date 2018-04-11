@@ -1,30 +1,24 @@
 package tl1.asv.projet;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.TopicManagementResponse;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import tl1.asv.projet.db.ClientsDatabase;
+import tl1.asv.projet.recognition.GetFromServer;
+import tl1.asv.projet.recognition.RecognitionTrainerController;
+import tl1.asv.projet.recognition.TrainingCluster;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.*;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Logger;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-
-import com.google.api.core.ApiFuture;
-import com.google.api.core.ApiFutureCallback;
-import com.google.firebase.messaging.*;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-import sun.rmi.runtime.Log;
-import tl1.asv.projet.db.ClientsDatabase;
-import tl1.asv.projet.recognition.*;
 
 import static tl1.asv.projet.Config.*;
 

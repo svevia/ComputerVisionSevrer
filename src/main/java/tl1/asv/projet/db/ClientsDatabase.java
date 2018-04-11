@@ -2,6 +2,9 @@ package tl1.asv.projet.db;
 
 import java.util.HashMap;
 
+/**
+ * Static databases for FCM.
+ */
 public class ClientsDatabase {
 
     public static final HashMap<String, String> clients = new HashMap<>();

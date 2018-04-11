@@ -7,6 +7,7 @@ import org.bytedeco.javacpp.opencv_core.KeyPointVector;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_features2d.BOWImgDescriptorExtractor;
 import tl1.asv.projet.recognition.general.Classifier;
+import tl1.asv.projet.recognition.general.RecognitionSystem;
 import tl1.asv.vocabulary.Brand;
 import tl1.asv.vocabulary.References;
 
@@ -19,7 +20,7 @@ import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imwrite;
 import static tl1.asv.projet.Config.SERVER_REFERENCES_FOLDER;
 
-public class RecognitionTrainerController {
+public class RecognitionTrainerController implements RecognitionSystem {
 
 
     static opencv_features2d.BFMatcher matcher;

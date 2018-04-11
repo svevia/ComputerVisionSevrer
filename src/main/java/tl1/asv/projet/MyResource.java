@@ -8,6 +8,8 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import tl1.asv.projet.db.ClientsDatabase;
 import tl1.asv.projet.recognition.general.GetFromServer;
+import tl1.asv.projet.recognition.general.RecognitionSystem;
+import tl1.asv.projet.recognition.ipi.RecognitionAnalyseController;
 import tl1.asv.projet.recognition.training.RecognitionTrainerController;
 import tl1.asv.projet.recognition.training.TrainingCluster;
 
@@ -144,7 +146,7 @@ public class MyResource {
     @GET
     @Path("/analyse/{file}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response analyse(@PathParam("file") String file, @QueryParam("token") String token, @QueryParam("fcm") String fcm) {
+    public Response analyse(@PathParam("file") String file, @QueryParam("token") String token, @QueryParam("fcm") String fcm, @QueryParam("v1") String useLocalV1) {
         System.out.println("Starting analyse");
 
         if (!ClientsDatabase.checkPair(fcm, token)) {
@@ -159,9 +161,17 @@ public class MyResource {
             String filepath = SERVER_UPLOAD_LOCATION_FOLDER + "/" + file;
 
 
-            RecognitionTrainerController recognitionTrainerController = new RecognitionTrainerController();
             try {
-                className = recognitionTrainerController.analyse(filepath);
+                RecognitionSystem system;
+
+                // IF USE OF PREVIOUS SYSTEM, let's say it.
+                if (!useLocalV1.isEmpty()) {
+                    system = new RecognitionAnalyseController();
+                } else {
+                    system = new RecognitionTrainerController();
+                }
+
+                className = system.analyse(filepath);
 
                 // move file in staging
                 moveFileToStaging(filepath, className);
@@ -177,7 +187,7 @@ public class MyResource {
             Message message = Message.builder()
                     .putData("action", "analyse")
                     .putData("prediction", className)
-                    .putData("code","1")
+                    .putData("code", "1")
                     .setToken(fcm)
                     .build();
             System.out.println("Sent to " + fcm);
@@ -232,8 +242,6 @@ public class MyResource {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
-
-
 
 
         return Response.status(200).entity(tok2).build();

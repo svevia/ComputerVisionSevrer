@@ -2,6 +2,7 @@ package tl1.asv.projet.recognition.ipi;
 
 import tl1.asv.projet.recognition.general.Classifier;
 import tl1.asv.projet.recognition.general.OneImage;
+import tl1.asv.projet.recognition.general.RecognitionSystem;
 
 import java.io.File;
 import java.util.*;
@@ -9,7 +10,10 @@ import java.util.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
 import static tl1.asv.projet.Config.SERVER_REFERENCES_FOLDER;
 
-public class RecognitionAnalyseController {
+/**
+ * This class is used in case.
+ */
+public class RecognitionAnalyseController implements RecognitionSystem {
 
     // keep ordered classifiers
     private TreeMap<String, Classifier> classifiers = new TreeMap<>();

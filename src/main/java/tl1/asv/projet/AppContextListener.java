@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import tl1.asv.projet.recognition.training.StarterTraining;
 import tl1.asv.projet.recognition.training.TrainingCluster;
+import tl1.asv.projet.utils.HttpDownloadUtility;
 import tl1.asv.vocabulary.Brand;
 import tl1.asv.vocabulary.References;
 
@@ -25,8 +27,6 @@ public class AppContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent arg0) {
-        //downloadClassifiers();
-       //
 
         try {
             loadFCM();
@@ -35,15 +35,14 @@ public class AppContextListener implements ServletContextListener {
             e.printStackTrace();
         }
 
-        TrainingCluster trainingCluster = new TrainingCluster();
-        trainingCluster.train();
+        // ON INIT, train local classifiers
+        new StarterTraining("local");
 
-        localClassifiers();
 
     }
 
     /**
-     *
+     * Loads the google messaging.
      * @throws IOException
      */
     private void loadFCM() throws IOException {
@@ -62,51 +61,5 @@ public class AppContextListener implements ServletContextListener {
     }
 
 
-    private void localClassifiers() {
-        System.out.println("Server ok");
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            References obj = mapper.readValue(new File("etc/index.json"), References.class);
-
-            References.setSingleton(obj);
-
-
-
-
-
-            System.out.println(obj.getVocabulary());
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    private void downloadClassifiers() {
-        System.out.println("Server ok");
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            References obj = mapper.readValue(new URL("http://www-rech.telecom-lille.fr/nonfreesift/index.json"), References.class);
-
-            References.setSingleton(obj);
-
-            HttpDownloadUtility.downloadFile("http://www-rech.telecom-lille.fr/nonfreesift/" + obj.getVocabulary(), References.DIRECTORY);
-            for (Brand b : obj.getBrands()) {
-                HttpDownloadUtility.downloadFile("http://www-rech.telecom-lille.fr/nonfreesift/classifiers/" + b.getClassifier(), References.DIRECTORY);
-
-                for (String image : b.getImages()) {
-                    HttpDownloadUtility.downloadFile("http://www-rech.telecom-lille.fr/nonfreesift/train-images/" + image, References.DIRECTORY + "/refs");
-
-                }
-
-
-            }
-
-
-            System.out.println(obj.getVocabulary());
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
 
 }

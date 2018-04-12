@@ -18,7 +18,7 @@ import java.util.TreeMap;
 import static org.bytedeco.javacpp.opencv_core.NORM_L2;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imwrite;
-import static tl1.asv.projet.Config.SERVER_REFERENCES_FOLDER;
+import static tl1.asv.projet.utils.Config.SERVER_REFERENCES_FOLDER;
 
 public class RecognitionTrainerController implements RecognitionSystem {
 

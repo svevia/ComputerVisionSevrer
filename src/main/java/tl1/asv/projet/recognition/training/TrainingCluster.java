@@ -10,7 +10,7 @@ import org.bytedeco.javacpp.opencv_features2d.BOWKMeansTrainer;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import tl1.asv.projet.Config;
+import tl1.asv.projet.utils.Config;
 
 import java.io.*;
 import java.math.BigInteger;

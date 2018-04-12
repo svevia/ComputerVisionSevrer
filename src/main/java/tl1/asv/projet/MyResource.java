@@ -11,7 +11,8 @@ import tl1.asv.projet.recognition.general.GetFromServer;
 import tl1.asv.projet.recognition.general.RecognitionSystem;
 import tl1.asv.projet.recognition.ipi.RecognitionAnalyseController;
 import tl1.asv.projet.recognition.training.RecognitionTrainerController;
-import tl1.asv.projet.recognition.training.TrainingCluster;
+import tl1.asv.projet.recognition.training.StarterTraining;
+import tl1.asv.projet.utils.Config;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -22,7 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
-import static tl1.asv.projet.Config.*;
+import static tl1.asv.projet.utils.Config.*;
 
 
 /**
@@ -58,30 +59,19 @@ public class MyResource {
     @GET
     @Path("/train")
     @Produces(MediaType.TEXT_PLAIN)
-    public String trainSErv() {
+    public String trainingServer(@QueryParam("refs_server") String refs_server, @QueryParam("custom_refs_server") String custom_refs_server) {
 
         new Thread(() -> {
 
-            /**
-             * remove classifiers
-             */
-            File dirClassifiers = new File(SERVER_CLASSIFIERS_FOLDER);
-            File[] files = dirClassifiers.listFiles();
-            for (File file : files) {
-                if (file.isFile()) file.delete();
+
+            String r_server= (refs_server!=null) ? refs_server.toLowerCase() : "local";
+
+            if(!(r_server.equals("local") || r_server.equals("teacher") || r_server.equals("prof"))){
+                r_server = (custom_refs_server!=null) ? custom_refs_server.toLowerCase() : "local";
+
             }
 
-            /**
-             * remove index and vocab
-             */
-            File indexjson = new File(SERVER_ETC_FOLDER + "/index.json");
-            File vocab = new File(SERVER_ETC_FOLDER + "/vocabulary.yml");
-
-            if (indexjson.isFile()) indexjson.delete();
-            if (vocab.isFile()) vocab.delete();
-
-            TrainingCluster trainingCluster = new TrainingCluster();
-            trainingCluster.train();
+            new StarterTraining(r_server);
 
 
         }).start();
@@ -165,9 +155,12 @@ public class MyResource {
                 RecognitionSystem system;
 
                 // IF USE OF PREVIOUS SYSTEM, let's say it.
-                if (!useLocalV1.isEmpty()) {
+                if (useLocalV1 != null && !useLocalV1.isEmpty()) {
+                    System.out.println("Using localV1");
+
                     system = new RecognitionAnalyseController();
                 } else {
+                    System.out.println("Using new version!");
                     system = new RecognitionTrainerController();
                 }
 

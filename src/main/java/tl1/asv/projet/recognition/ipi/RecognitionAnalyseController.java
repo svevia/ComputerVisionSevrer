@@ -8,7 +8,7 @@ import java.io.File;
 import java.util.*;
 
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
-import static tl1.asv.projet.Config.SERVER_REFERENCES_FOLDER;
+import static tl1.asv.projet.utils.Config.SERVER_REFERENCES_FOLDER;
 
 /**
  * This class is used in case.

@@ -1,4 +1,4 @@
-package tl1.asv.projet;
+package tl1.asv.projet.utils;
 
 
 public class Config {
